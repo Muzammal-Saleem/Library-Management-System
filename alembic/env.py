@@ -11,7 +11,7 @@ from alembic import context
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from app.database import Base, DATABASE_URL
-import app.models  # Import to register models on Base.metadata
+import app.models  # noqa: F401  # Import to register models on Base.metadata
 
 config = context.config
 
