@@ -1,0 +1,32 @@
+# Git
+.git
+.github
+
+# Python caches and virtual environments
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local configuration files
+.env
+.env.example
+
+# IDE files
+.vscode/
+.idea/
+.project
+.pydevproject
+
+# Docker files (not needed in container build context)
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore

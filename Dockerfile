@@ -19,6 +19,8 @@ RUN uv pip install --system --no-cache -r requirements.txt
 
 # Copy the application folder to /app/app
 COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini .
 
-# Run the CLI application when the container launches
-CMD ["python", "-m", "app.main"]
+# Run the FastAPI application when the container launches
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

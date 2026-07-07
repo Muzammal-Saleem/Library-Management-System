@@ -1,21 +1,23 @@
-import os
-import psycopg2
+from fastapi import FastAPI
+from app.routers import books, members, loans
+from app.database import check_connection
 
+app = FastAPI(
+    title="Library Management System API",
+    description="A Web API to manage books, members, and book loans.",
+    version="1.0.0"
+)
 
-def main():
-    print("Library Management System CLI is running!")
-    try:
-        conn = psycopg2.connect(
-            host=os.getenv("DB_HOST", "localhost"),
-            database=os.getenv("DB_NAME", "postgres"),
-            user=os.getenv("DB_USER", "postgres"),
-            password=os.getenv("DB_PASSWORD", "postgres")
-        )
-        print("Database connection check: SUCCESSFUL!")
-        conn.close()
-    except Exception as e:
-        print(f"Database connection check: FAILED! ({e})")
+# Include resource routers
+app.include_router(books.router)
+app.include_router(members.router)
+app.include_router(loans.router)
 
-
-if __name__ == "__main__":
-    main()
+@app.get("/", tags=["health"])
+def health_check():
+    db_healthy = check_connection()
+    return {
+        "status": "online",
+        "database": "connected" if db_healthy else "disconnected",
+        "docs_url": "/docs"
+    }
