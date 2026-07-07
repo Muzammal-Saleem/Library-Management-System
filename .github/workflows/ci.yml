@@ -1,17 +1,20 @@
-name: CI
+name: CI (Continuous Integration)
 
 on:
+  push:
+    branches:
+      - "**"
   pull_request:
     branches:
       - main
       - '*staging*'
 
 jobs:
- lint-and-test:
+  lint-and-test:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -21,6 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          pip install ruff pytest
 
       - name: Lint
         run: ruff check .
