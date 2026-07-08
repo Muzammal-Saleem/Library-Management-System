@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import books, members, loans
+from app.routers import auth, books, members, loans
 from app.database import check_connection
 
 app = FastAPI(
@@ -9,6 +9,7 @@ app = FastAPI(
 )
 
 # Include resource routers
+app.include_router(auth.router)
 app.include_router(books.router)
 app.include_router(members.router)
 app.include_router(loans.router)

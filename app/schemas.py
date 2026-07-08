@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
-from app.models import BookStatus, LoanStatus
+from app.models import BookStatus, LoanStatus, MemberRole
 
 
 # Book Schemas
@@ -29,14 +29,26 @@ class MemberBase(BaseModel):
 
 
 class MemberCreate(MemberBase):
-    pass
+    password: str  # Required for account creation
 
 
 class MemberResponse(MemberBase):
     id: int
+    role: MemberRole
     registration_date: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+# Token Schemas
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    email: Optional[str] = None
+    role: Optional[MemberRole] = None
 
 
 # Loan Schemas
