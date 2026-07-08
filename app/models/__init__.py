@@ -1,4 +1,4 @@
-from app.database import Base
-from .book import Book, BookStatus
-from .member import Member, MemberRole
-from .loan import Loan, LoanStatus
+from app.database import Base as Base
+from .book import Book as Book, BookStatus as BookStatus
+from .member import Member as Member, MemberRole as MemberRole
+from .loan import Loan as Loan, LoanStatus as LoanStatus
