@@ -18,37 +18,22 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Create app directory if not exists
-            mkdir -p /home/${{ secrets.EC2_USER }}/app
-
-            # Clone repository if it is not already present, otherwise pull latest code
-            if [ ! -d "/home/${{ secrets.EC2_USER }}/app/.git" ]; then
-              echo "Cloning repository..."
-              git clone https://github.com/Muzammal-Saleem/Library-Management-System.git /home/${{ secrets.EC2_USER }}/app
-            fi
-
-            cd /home/${{ secrets.EC2_USER }}/app
-            echo "Fetching and checking out branch ${{ github.ref_name }}..."
-            git fetch --all
-            git checkout -f ${{ github.ref_name }}
+            cd ~/app || git clone https://github.com/Muzammal-Saleem/Library-Management-System.git ~/app
+            cd ~/app
             git pull origin ${{ github.ref_name }}
 
-            # Generate the production .env file dynamically from GitHub Secrets
-            echo "Generating production .env file..."
-            echo "POSTGRES_DB=${{ secrets.DB_NAME }}" > .env
-            echo "POSTGRES_USER=${{ secrets.DB_USER }}" >> .env
-            echo "POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-            echo "DB_HOST=db" >> .env
-            echo "DB_PORT=5432" >> .env
-            echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-            echo "DB_USER=${{ secrets.DB_USER }}" >> .env
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            cat <<EOF > .env
+            POSTGRES_DB=${{ secrets.DB_NAME }}
+            POSTGRES_USER=${{ secrets.DB_USER }}
+            POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_HOST=db
+            DB_PORT=5432
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            EOF
 
-            # Build the Docker image locally on EC2 and spin up the containers
-            echo "Building and launching containers..."
-            docker compose down
             docker compose up -d --build
-
-            # Run alembic migrations
-            echo "Running database migrations..."
             docker compose run --rm app alembic upgrade head
+            docker compose run --rm app python -m app.seed
+
