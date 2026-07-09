@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from app.routers import auth, books, members, loans
 from app.database import check_connection
@@ -7,6 +8,10 @@ app = FastAPI(
     description="A Web API to manage books, members, and book loans.",
     version="1.0.0"
 )
+
+@app.on_event("startup")
+def startup_event():
+    os.makedirs("reports", exist_ok=True)
 
 # Include resource routers
 app.include_router(auth.router)

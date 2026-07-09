@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.orm import Session
-from app.models import Book, BookStatus, Member, Loan, LoanStatus
+from app.models import Book, BookStatus, Loan, LoanStatus
 from app.services.member import get_member
 
 

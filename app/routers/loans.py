@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import os
+from datetime import datetime
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from app import schemas, security, services
-from app.database import get_db
+from app.database import get_db, SessionLocal
 from app.models import MemberRole, Loan, LoanStatus
 
 router = APIRouter(
@@ -12,6 +15,7 @@ router = APIRouter(
 
 class BookReturnRequest(BaseModel):
     book_id: int
+
 
 @router.post("/borrow", response_model=schemas.LoanResponse, status_code=status.HTTP_201_CREATED)
 def borrow_book(
@@ -35,6 +39,7 @@ def borrow_book(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
 
 @router.post("/return", response_model=schemas.LoanResponse, status_code=status.HTTP_200_OK)
 def return_book(
@@ -69,3 +74,48 @@ def return_book(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
+
+
+@router.post("/report", status_code=status.HTTP_202_ACCEPTED)
+def request_library_report(
+    background_tasks: BackgroundTasks,
+    current_librarian: schemas.MemberResponse = Depends(security.get_current_librarian)
+):
+    """Triggers report compilation in the background (Librarians only)."""
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    filename = f"report_{timestamp}.txt"
+    
+    # Register the background task to run off-request
+    background_tasks.add_task(
+        services.generate_library_report_task,
+        db_session_factory=SessionLocal,
+        report_filename=filename
+    )
+    
+    return {
+        "status": "Report generation started in the background",
+        "filename": filename
+    }
+
+
+@router.get("/reports/{filename}")
+def download_library_report(
+    filename: str,
+    current_librarian: schemas.MemberResponse = Depends(security.get_current_librarian)
+):
+    """Allows downloading a generated report file directly (Librarians only)."""
+    # Prevent directory traversal vulnerability
+    safe_filename = os.path.basename(filename)
+    filepath = os.path.join("reports", safe_filename)
+    
+    if not os.path.exists(filepath):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Report file not found."
+        )
+        
+    return FileResponse(
+        path=filepath,
+        media_type="text/plain",
+        filename=safe_filename
+    )
