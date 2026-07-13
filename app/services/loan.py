@@ -9,9 +9,15 @@ def borrow_book(db: Session, book_id: int, member_id: int) -> Loan:
     if not book:
         raise ValueError(f"Book with ID {book_id} does not exist.")
 
-    if book.status == BookStatus.LOANED:
+    # Calculate active loans count
+    active_loans_count = db.query(Loan).filter(
+        Loan.book_id == book_id,
+        Loan.status == LoanStatus.ACTIVE
+    ).count()
+
+    if active_loans_count >= book.quantity:
         raise ValueError(
-            f"Book '{book.title}' is already checked out (loaned) by another member."
+            f"All copies of '{book.title}' are already checked out."
         )
 
     member = get_member(db, member_id)
@@ -20,8 +26,9 @@ def borrow_book(db: Session, book_id: int, member_id: int) -> Loan:
 
     # Create the loan record
     loan = Loan(book_id=book_id, member_id=member_id, status=LoanStatus.ACTIVE)
-    # Update book status to Loaned
-    book.status = BookStatus.LOANED
+    # Update book status to Loaned if all copies are now checked out
+    if active_loans_count + 1 >= book.quantity:
+        book.status = BookStatus.LOANED
 
     db.add(loan)
     db.commit()

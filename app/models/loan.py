@@ -28,5 +28,21 @@ class Loan(Base):
     book = relationship("Book", back_populates="loans")
     member = relationship("Member", back_populates="loans")
 
+    @property
+    def book_title(self) -> str:
+        return self.book.title if self.book else ""
+
+    @property
+    def member_name(self) -> str:
+        return self.member.name if self.member else ""
+
+    @property
+    def borrowed_at(self):
+        return self.loan_date
+
+    @property
+    def returned_at(self):
+        return self.return_date
+
     def __repr__(self):
         return f"<Loan(id={self.id}, book_id={self.book_id}, member_id={self.member_id}, status='{self.status.value}')>"

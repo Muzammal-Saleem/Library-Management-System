@@ -1,16 +1,22 @@
 import os
+import time
 from datetime import datetime
-from sqlalchemy.orm import sessionmaker
+from app.celery_app import celery_app
+from app.database import SessionLocal
 from app.models import Book, BookStatus, Member, Loan, LoanStatus
 
 
-def generate_library_report_task(db_session_factory: sessionmaker, report_filename: str) -> None:
-    """Background task to generate a detailed library status report on disk."""
-    # Start a separate, independent database session
-    db = db_session_factory()
+@celery_app.task(name="app.tasks.report.generate_library_report_task")
+def generate_library_report_task(report_filename: str) -> str:
+    """Celery background task to generate a library summary report with an artificial delay."""
+    print(f"Background Task: Starting report generation for {report_filename}...")
+    
+    # Artificial delay of 4 seconds as requested by the user
+    print("Background Task: Simulating 4-second delay...")
+    time.sleep(4)
+    
+    db = SessionLocal()
     try:
-        print(f"Background Task: Starting report generation for {report_filename}...")
-        
         # Query all records
         books = db.query(Book).all()
         members = db.query(Member).all()
@@ -20,6 +26,9 @@ def generate_library_report_task(db_session_factory: sessionmaker, report_filena
         total_books = len(books)
         loaned_books = sum(1 for b in books if b.status == BookStatus.LOANED)
         available_books = total_books - loaned_books
+        
+        # Ensure reports folder exists
+        os.makedirs("reports", exist_ok=True)
         
         # Write report data to file
         report_path = os.path.join("reports", report_filename)
@@ -49,8 +58,11 @@ def generate_library_report_task(db_session_factory: sessionmaker, report_filena
             f.write("Report completed successfully.\n")
             
         print(f"Background Task: Report {report_filename} successfully saved.")
+        return f"Report {report_filename} generated successfully."
         
     except Exception as e:
-        print(f"Background Task Error generating report {report_filename}: {e}")
+        error_msg = f"Error generating report {report_filename}: {e}"
+        print(f"Background Task Error: {error_msg}")
+        raise e
     finally:
         db.close()

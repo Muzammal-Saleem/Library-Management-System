@@ -18,6 +18,9 @@ class BookCreate(BookBase):
 class BookResponse(BookBase):
     id: int
     status: BookStatus
+    available_count: int
+    total_count: int
+    quantity: int
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -66,5 +69,9 @@ class LoanResponse(LoanBase):
     loan_date: datetime
     return_date: Optional[datetime] = None
     status: LoanStatus
+    book_title: str
+    member_name: str
+    borrowed_at: datetime
+    returned_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)

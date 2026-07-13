@@ -31,7 +31,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     # OAuth2 uses the 'username' parameter to pass the login identifier (which is email in our case)
     member = db.query(Member).filter(Member.email == form_data.username).first()
     
-    if not member or not security.verify_password(form_data.password, member.hashed_password):
+    if not member or not member.is_active or not security.verify_password(form_data.password, member.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
@@ -40,6 +40,6 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     
     # Generate token payload
     access_token = security.create_access_token(
-        data={"sub": member.email, "role": member.role.value}
+        data={"sub": member.email, "role": member.role.value, "id": member.id}
     )
     return {"access_token": access_token, "token_type": "bearer"}

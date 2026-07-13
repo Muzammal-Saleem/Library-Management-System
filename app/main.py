@@ -1,5 +1,6 @@
 import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, books, members, loans
 from app.database import check_connection
 
@@ -7,6 +8,14 @@ app = FastAPI(
     title="Library Management System API",
     description="A Web API to manage books, members, and book loans.",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.on_event("startup")
@@ -27,3 +36,10 @@ def health_check():
         "database": "connected" if db_healthy else "disconnected",
         "docs_url": "/docs"
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    host = os.getenv("API_IP", "0.0.0.0")
+    port = int(os.getenv("API_PORT", "8000"))
+    uvicorn.run("app.main:app", host=host, port=port, reload=False)

@@ -1,6 +1,6 @@
 import enum
 import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Enum as SqlEnum
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Enum as SqlEnum
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -22,6 +22,7 @@ class Member(Base):
         default=MemberRole.MEMBER,
         nullable=False,
     )
+    is_active = Column(Boolean, default=True, nullable=False)
     registration_date = Column(
         DateTime, default=datetime.datetime.utcnow, nullable=False
     )
