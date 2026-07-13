@@ -1,6 +1,6 @@
 from app.database import SessionLocal
-from app.models import Book, Member, BookStatus
-
+from app.models import Book, Member, BookStatus, MemberRole
+from app.security import get_password_hash
 
 def seed_data():
     db = SessionLocal()
@@ -28,8 +28,24 @@ def seed_data():
 
         # Test members
         members_data = [
-            {"name": "John Doe", "email": "john@example.com"},
-            {"name": "Jane Smith", "email": "jane@example.com"},
+            {
+                "name": "John Doe",
+                "email": "john@example.com",
+                "password": "johnpass",
+                "role": MemberRole.MEMBER
+            },
+            {
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "password": "janepass",
+                "role": MemberRole.MEMBER
+            },
+            {
+                "name": "Admin Librarian",
+                "email": "librarian@example.com",
+                "password": "librarianpass",
+                "role": MemberRole.LIBRARIAN
+            },
         ]
 
         # Seed Books
@@ -55,11 +71,15 @@ def seed_data():
                 db.query(Member).filter(Member.email == member_info["email"]).first()
             )
             if not existing_member:
+                hashed_pwd = get_password_hash(member_info["password"])
                 member = Member(
-                    name=member_info["name"], email=member_info["email"]
+                    name=member_info["name"],
+                    email=member_info["email"],
+                    hashed_password=hashed_pwd,
+                    role=member_info["role"]
                 )
                 db.add(member)
-                print(f"Seeded member: '{member.name}'")
+                print(f"Seeded member: '{member.name}' ({member.role.value})")
             else:
                 print(
                     f"Member with email {member_info['email']} already exists. Skipping."
